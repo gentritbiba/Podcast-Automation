@@ -11,6 +11,9 @@
 
 define("PODCAST_AUTOMATION_PLUGIN_DIR", plugin_dir_path(__FILE__));
 define("PODCAST_AUTOMATION_PLUGIN_URL", plugin_dir_url(__FILE__));
+define("PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME", "podcast");
+define("PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY", "podcast_category");
+
 require_once(PODCAST_AUTOMATION_PLUGIN_DIR . "/vendor/autoload.php");
 use phpseclib3\Net\SFTP;
 function podcast_automation_job()
@@ -18,7 +21,7 @@ function podcast_automation_job()
     if(!post_type_exists( "podcast" )){
         exit("Post type podcast does not exist");
     }
-    include_once(PODCAST_AUTOMATION_PLUGIN_DIR . "/stfp_cred.php");
+    include_once(PODCAST_AUTOMATION_PLUGIN_DIR . "/sftp_cred.php");
     $recursive = true;
     
     // Login to SFTP
@@ -58,6 +61,17 @@ function podcast_automation_job()
                 break;
             } else {
                 // Create the post type and give the selected category
+                $tax = term_exists( $key, PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY );
+                $tax_id;
+                $post_id = wp_insert_post(array(
+                    'post_type' => PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME,
+                    'post_category' => 2,
+                    'post_status'   => "published",
+                    'post_title' => "insert_here_later",
+                    'post_name' => "insert_here_later",
+                ));
+                wp_set_post_terms($post_id, $key, PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY);
+                
             }
         }
     }
@@ -66,44 +80,74 @@ function podcast_automation_job()
     // print_r($sftp->rawlist()); // == $sftp->rawlist('.')
 }
 
+add_action( 'init', 'create_topics_nonhierarchical_taxonomy', 0 );
+ 
+function create_topics_nonhierarchical_taxonomy() {
+ 
+// Labels part for the GUI
+ 
+  $labels = array(
+    'name' => _x( 'Podcast Category', 'taxonomy general name' ),
+    'singular_name' => _x( 'Podcast Category', 'taxonomy singular name' ),
+    'search_items' =>  __( 'Search Podcast Category' ),
+    'popular_items' => __( 'Popular Podcast Categories' ),
+    'all_items' => __( 'All Podcast Categorie' ),
+    'parent_item' => null,
+    'parent_item_colon' => null,
+    'edit_item' => __( 'Edit Podcast Category' ), 
+    'update_item' => __( 'Update Podcast Category' ),
+    'add_new_item' => __( 'Add New Podcast Category' ),
+    'new_item_name' => __( 'New Podcast Category Name' ),
+    'separate_items_with_commas' => __( 'Separate Podcast Categories with commas' ),
+    'add_or_remove_items' => __( 'Add or remove Podcast Categories' ),
+    'choose_from_most_used' => __( 'Choose from the most used Podcast Categories' ),
+    'menu_name' => __( 'Podcast Categories' ),
+  ); 
+ 
+// Now register the non-hierarchical taxonomy like tag
+ 
+  register_taxonomy(PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY,PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME,array(
+    'hierarchical' => false,
+    'labels' => $labels,
+    'show_ui' => true,
+    'show_in_rest' => true,
+    'show_admin_column' => true,
+    'update_count_callback' => '_update_post_term_count',
+    'query_var' => true,
+    'rewrite' => array( 'slug' => PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY ),
+  ));
+}
+
 
 // Temp test
 function create_posttype() {
-    $labels = array(
-        'name' => _x( 'Show Type', 'taxonomy general name' ),
-        'singular_name' => _x( 'Recording', 'taxonomy singular name' ),
-        'search_items' =>  __( 'Search Show Type' ),
-        'popular_items' => __( 'Popular Show Types' ),
-        'all_items' => __( 'All Show Types' ),
-        'parent_item' => __( 'Parent Recording' ),
-        'parent_item_colon' => __( 'Parent Recording:' ),
-        'edit_item' => __( 'Edit Recording' ),
-        'update_item' => __( 'Update Recording' ),
-        'add_new_item' => __( 'Add New Recording' ),
-        'new_item_name' => __( 'New Recording Name' ),
-      );
-    register_taxonomy('show_category',array('podcast'), array(
-        'hierarchical' => true,
-        'labels' => $labels,
-        'show_ui' => true,
-        'query_var' => true,
-        'rewrite' => array( 'slug' => 'show_category' ),
-      ));
     register_post_type( 'podcast',
     // CPT Options
         array(
             'labels' => array(
-                'name' => __( 'podcast' ),
+                'name' => __( 'Podcast' ),
                 'singular_name' => __( 'Podcast' )
             ),
-            'taxonomies' => array('show_category'),
+            'taxonomies' => array(PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY),
             'public' => true,
             'has_archive' => true,
-            'rewrite' => array('slug' => 'podcast'),
+            'rewrite' => array('slug' => PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME),
             'show_in_rest' => true,
  
         )
     );
+    // var_dump(wp_insert_term("test1233", PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY));
+    // var_dump(podcast_automation_job());
+    // wp_insert_term("test111", PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY);
+    // var_dump(wp_insert_post(array(
+    //     'post_type' => PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME,
+    //     'tags_input' => array(PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY =>array(8)),
+    //     'post_status'   => "publish",
+    //     'post_title' => "insert_here_later",
+    //     'post_name' => "insert_here_later",
+    // )));
 }
 // Hooking up our function to theme setup
 add_action( 'init', 'create_posttype' );
+
+// var_dump( term_exists( "test", PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY ));
