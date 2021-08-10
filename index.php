@@ -60,14 +60,17 @@ function podcast_automation_job()
         $arr_size = count($files[$key]);
         for ($i = 0; $i < $arr_size; $i++) {
 
-            if (strpos($files[$key][$arr_size - 1 - $i], ".mp3") === 'false' || substr( $files[$key][$arr_size - 1 - $i], 0, 2 ) === "m-") {
+            if (strpos($files[$key][$arr_size - 1 - $i], ".mp3") === 'false') {
                 continue;
             }
-            // $post_name = 
-
-            // post_exists('insert_here_later 123', '','',PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME)
+            $temp_name = $files[$key][$arr_size - 1 - $i];
+            // Remove m-
+            $temp_name = str_replace('m-', "", $temp_name);
+            // Remove .mp3
+            $temp_name = str_replace('.mp3', "", $temp_name);
+            $post_name = ucfirst($key) . " " . $temp_name;
             // Check if the post exists
-            if ($files[$key][$arr_size - 1 - $i] || !$files[$key][0]) {
+            if (post_exists($post_name, '','',PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME)) {
                 break;
             } else {
                 // Create the post type and give the selected category
@@ -75,9 +78,9 @@ function podcast_automation_job()
                 $tax_id;
                 $post_id = wp_insert_post(array(
                     'post_type' => PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME,
-                    'post_status'   => "published",
-                    'post_title' => "insert_here_later",
-                    'post_name' => "insert_here_later",
+                    'post_status'   => "publish",
+                    'post_title' => $post_name,
+                    'post_name' => $post_name,
                 ));
                 wp_set_post_terms($post_id, $key, PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY);
                 
@@ -155,8 +158,16 @@ function create_posttype() {
     //     'post_title' => "insert_here_later",
     //     'post_name' => "insert_here_later",
     // )));
+    
+    // var_dump(wp_mail('gentritbiba@gmail.com', "test", "test"));
+
 }
 // Hooking up our function to theme setup
 add_action( 'init', 'create_posttype' );
+
+function cron_test(){
+    podcast_automation_job();
+}
+add_action('test_cron_job', 'cron_test');
 
 // var_dump( term_exists( "test", PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY ));
