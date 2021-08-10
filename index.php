@@ -52,11 +52,11 @@ function podcast_automation_job()
         $arr_size = count($files[$key]);
         for ($i = 0; $i < $arr_size; $i++) {
 
-            // Check if the post exists
-            if (!strpos($files[$key][$arr_size - 1 - $i], ".mp3")) {
+            if (strpos($files[$key][$arr_size - 1 - $i], ".mp3") === 'false' || substr( $files[$key][$arr_size - 1 - $i], 0, 2 ) === "m-") {
                 continue;
             }
-
+            
+            // Check if the post exists
             if ($files[$key][$arr_size - 1 - $i] || !$files[$key][0]) {
                 break;
             } else {
@@ -65,7 +65,6 @@ function podcast_automation_job()
                 $tax_id;
                 $post_id = wp_insert_post(array(
                     'post_type' => PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME,
-                    'post_category' => 2,
                     'post_status'   => "published",
                     'post_title' => "insert_here_later",
                     'post_name' => "insert_here_later",
@@ -76,7 +75,7 @@ function podcast_automation_job()
         }
     }
 
-    var_dump($keys); // == $sftp->nlist('.')
+    // var_dump($keys); // == $sftp->nlist('.')
     // print_r($sftp->rawlist()); // == $sftp->rawlist('.')
 }
 
@@ -136,6 +135,10 @@ function create_posttype() {
  
         )
     );
+    if ( ! function_exists( 'post_exists' ) ) {
+        require_once( ABSPATH . 'wp-admin/includes/post.php' );
+    }
+    var_dump(post_exists('insert_here_later 123', '','',PODCAST_AUTOMATION_CUSTOM_POST_TYPE_NAME));
     // var_dump(wp_insert_term("test1233", PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY));
     // var_dump(podcast_automation_job());
     // wp_insert_term("test111", PODCAST_AUTOMATION_CUSTOM_POST_TYPE_TAXONOMY);

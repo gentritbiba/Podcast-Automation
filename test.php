@@ -11,9 +11,10 @@ foreach ($keys as $key) {
             continue;
             var_dump($json_a[$key][$i]);
         }
+        var_dump($json_a[$key][$arr_size -1 - $i]);
         // Check if the post exists
         if ($json_a[$key][$arr_size - 1 - $i] || !$json_a[$key][0]) {
-            break;
+            // break;
         }
         else{
             // Create the post type
