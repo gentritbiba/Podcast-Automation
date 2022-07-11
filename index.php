@@ -2,10 +2,8 @@
 
 /**
  * Plugin Name: Podcast Automation
- * Description: Automatically create 
- * Plugin URI: https://shorten.rest/introducing-the-wordpress-branded-sharebox/
- * Author: Shorten.REST
- * Author URI: https://shorten.rest
+ * Description: Automatically create Podcasts
+ * Author: Gentrit Biba
  * Version: 1.5
  */
 
